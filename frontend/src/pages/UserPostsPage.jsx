@@ -1,30 +1,29 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
-  createPost,
   deletePost,
   editPostCaption,
-  getMyPosts,
+  getPostsByUsername,
 } from "../api/PostApi";
-import { getMyProfile } from "../api/ProfileApi";
 import PostCard from "../components/PostCard";
-import PostForm from "../components/PostForm";
 import ProfileCard from "../components/ProfileCard";
 
-export default function ProfilePage({ token, onUser }) {
+export default function UserPostsPage({ token, currentUser }) {
+  const { username } = useParams();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState("");
-  const [postBusy, setPostBusy] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    Promise.all([getMyProfile(token), getMyPosts(token)])
-      .then(([profile, myPosts]) => {
+    setError("");
+    setUser(null);
+    setPosts([]);
+    getPostsByUsername(token, username)
+      .then((data) => {
         if (!alive) return;
-        setUser(profile);
-        onUser(profile);
-        setPosts(myPosts);
+        setUser(data.user);
+        setPosts(data.posts);
       })
       .catch((err) => {
         if (alive) setError(err.message);
@@ -32,17 +31,7 @@ export default function ProfilePage({ token, onUser }) {
     return () => {
       alive = false;
     };
-  }, [token, onUser]);
-
-  async function handleCreate({ caption, image }) {
-    setPostBusy(true);
-    try {
-      const post = await createPost(token, { caption, image });
-      setPosts((prev) => [post, ...prev]);
-    } finally {
-      setPostBusy(false);
-    }
-  }
+  }, [token, username]);
 
   async function handleEdit(postId, caption) {
     const updated = await editPostCaption(token, postId, caption);
@@ -58,6 +47,9 @@ export default function ProfilePage({ token, onUser }) {
     return (
       <main className="page">
         <p className="error">{error}</p>
+        <p className="hint">
+          <Link to="/profile">Back to your profile</Link>
+        </p>
       </main>
     );
   }
@@ -65,30 +57,27 @@ export default function ProfilePage({ token, onUser }) {
   if (!user) {
     return (
       <main className="page">
-        <p className="muted">Loading profile…</p>
+        <p className="muted">Loading posts…</p>
       </main>
     );
   }
 
-  const needsProfile = !user.fullName && !user.bio;
+  const isSelf =
+    currentUser &&
+    currentUser.username &&
+    currentUser.username.toLowerCase() === user.username.toLowerCase();
 
   return (
     <main className="page">
       <ProfileCard user={user} />
-      {needsProfile && (
+      {isSelf ? (
         <p className="hint">
-          Your profile is empty. <Link to="/profile/edit">Create your profile</Link>
+          This is you. <Link to="/profile">Manage your posts here</Link>
         </p>
-      )}
-      <div className="actions">
-        <Link className="button-link" to="/profile/edit">
-          Edit profile
-        </Link>
-      </div>
+      ) : null}
 
       <section className="posts-section">
-        <PostForm onSubmit={handleCreate} busy={postBusy} />
-        <h2>Your posts</h2>
+        <h2>{isSelf ? "Your posts" : `Posts by @${user.username}`}</h2>
         {posts.length === 0 ? (
           <p className="muted">No posts yet.</p>
         ) : (

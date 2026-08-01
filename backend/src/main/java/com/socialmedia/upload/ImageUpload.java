@@ -24,6 +24,14 @@ public class ImageUpload {
   }
 
   public String saveProfilePicture(Long userId, MultipartFile file) throws IOException {
+    return saveImage("user-" + userId, file);
+  }
+
+  public String savePostImage(Long userId, MultipartFile file) throws IOException {
+    return saveImage("post-" + userId, file);
+  }
+
+  private String saveImage(String prefix, MultipartFile file) throws IOException {
     if (file == null || file.isEmpty()) {
       throw new IllegalArgumentException("Image file is required");
     }
@@ -33,7 +41,7 @@ public class ImageUpload {
     }
 
     String extension = extensionFor(contentType);
-    String filename = "user-" + userId + "-" + UUID.randomUUID() + extension;
+    String filename = prefix + "-" + UUID.randomUUID() + extension;
     Path destination = uploadRoot.resolve(filename);
     Files.copy(file.getInputStream(), destination);
     return "/uploads/" + filename;

@@ -6,6 +6,7 @@ import EditProfilePage from "./pages/EditProfilePage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import SignupPage from "./pages/SignupPage";
+import UserPostsPage from "./pages/UserPostsPage";
 
 const TOKEN_KEY = "pulse_token";
 const USER_KEY = "pulse_user";
@@ -84,6 +85,16 @@ export default function App() {
           element={
             authed ? (
               <EditProfilePage token={token} onUser={handleUser} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/users/:username"
+          element={
+            authed ? (
+              <UserPostsPage token={token} currentUser={user} />
             ) : (
               <Navigate to="/login" replace />
             )

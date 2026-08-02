@@ -2,6 +2,8 @@
 
 Full-stack social app for accounts, profiles, follows, and posts.
 
+**Live demo:** [https://social-media-app-90z.pages.dev/](https://social-media-app-90z.pages.dev/)
+
 ## Run locally with Docker
 
 **Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose v2).

@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: auth-module
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:authdb}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # Secure cookie requires HTTPS in production; allow over HTTP for local dev
+  servlet:
+    multipart:
+      enabled: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-this-to-a-long-random-secret-key-32chars-min}
+    access-token-minutes: 15
+  refresh-token:
+    days: 30
+    cookie-name: refreshToken
+    cookie-secure: ${REFRESH_COOKIE_SECURE:false}
+    cookie-same-site: Lax
+  password-reset:
+    token-hours: 1
+
+logging:
+  level:
+    com.authmodule: INFO

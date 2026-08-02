@@ -8,3 +8,5 @@ uploads/
 .idea/
 *.iml
 .vscode/
+*.class
+.mvn/wrapper/maven-wrapper.jar

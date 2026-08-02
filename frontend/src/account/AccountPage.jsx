@@ -35,7 +35,7 @@ export default function AccountPage() {
       await accountApi.removeUsername()
       setUsername('')
       await refreshUser()
-      setMessage('Username removed (old name stays reserved)')
+      setMessage('Username removed. You can reclaim the same name anytime; others cannot take it.')
     } catch (err) {
       setError(err.response?.data?.error || 'Could not remove username')
     } finally {

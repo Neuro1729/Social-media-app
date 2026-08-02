@@ -235,8 +235,10 @@ public class AuthService {
         var current = users.findIdentifier(userId, AuthModels.IdentifierType.USERNAME);
         if (current.isPresent()) {
             LoginIdentifierEntity identifier = current.get();
-            // previous username stays reserved forever
-            users.reserveUsername(identifier.getNormalizedValue(), userId);
+            // previous active username stays reserved forever (so others cannot take it)
+            if (identifier.isActive()) {
+                users.reserveUsername(identifier.getNormalizedValue(), userId);
+            }
             identifier.setValue(request.username().trim());
             identifier.setNormalizedValue(normalized);
             identifier.setActive(true);
@@ -259,11 +261,13 @@ public class AuthService {
     public AuthModels.UserResponse removeUsername(UUID userId) {
         LoginIdentifierEntity identifier = users.findIdentifier(userId, AuthModels.IdentifierType.USERNAME)
                 .orElseThrow(() -> new IllegalArgumentException("No username set"));
+        if (!identifier.isActive()) {
+            throw new IllegalArgumentException("No username set");
+        }
+        // Keep reservation so others cannot claim it; owner can reclaim via changeUsername.
+        // Delete the identifier row (do not store a long "removed:..." tombstone — exceeds varchar(30)).
         users.reserveUsername(identifier.getNormalizedValue(), userId);
-        identifier.setActive(false);
-        identifier.setValue("");
-        identifier.setNormalizedValue("removed:" + userId + ":" + identifier.getId());
-        users.updateIdentifier(identifier);
+        users.deleteIdentifier(identifier);
         return getCurrentUser(userId);
     }
 

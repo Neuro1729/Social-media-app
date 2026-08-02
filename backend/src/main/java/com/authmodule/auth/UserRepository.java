@@ -92,6 +92,11 @@ public class UserRepository {
         em.merge(identifier);
     }
 
+    public void deleteIdentifier(LoginIdentifierEntity identifier) {
+        LoginIdentifierEntity managed = em.contains(identifier) ? identifier : em.merge(identifier);
+        em.remove(managed);
+    }
+
     public Optional<UsernameReservationEntity> findUsernameReservation(String normalizedUsername) {
         return Optional.ofNullable(em.find(UsernameReservationEntity.class, normalizedUsername));
     }

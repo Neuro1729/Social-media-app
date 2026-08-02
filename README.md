@@ -1,14 +1,102 @@
-# Auth Module
+# Canopy Social Media Platform
 
-Full-stack social app built around a reusable authentication core: accounts, profiles, follows, and posts.
+Full-stack social app for accounts, profiles, follows, and posts.
 
-## Quick start
+## Run locally with Docker
+
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose v2).
+
+1. Clone the repo and open a terminal in the project root (where `docker-compose.yml` is).
+2. Start everything (Postgres, Redis, backend, frontend):
 
 ```bash
 docker compose up --build -d
 ```
 
-Open http://localhost:3000 (API on http://localhost:8080).
+3. Wait until containers are healthy, then open the site:
+
+| Service  | URL |
+|----------|-----|
+| Website  | http://localhost:3000 |
+| API      | http://localhost:8080 |
+| Health   | http://localhost:8080/api/health |
+
+4. Useful commands:
+
+```bash
+# Follow logs
+docker compose logs -f
+
+# Stop (keeps data)
+docker compose down
+
+# Stop and remove the database volume
+docker compose down -v
+```
+
+First build can take a few minutes. Later starts reuse images and the Postgres volume.
+
+## Configuration groups
+
+Runtime settings are environment-driven. See `backend/.env.example` and `frontend/.env.example`.
+
+### PostgreSQL
+
+| Variable | Purpose | Local default |
+|----------|---------|---------------|
+| `DB_HOST` | Database host | `localhost` / Compose: `db` |
+| `DB_PORT` | Database port | `5432` |
+| `DB_NAME` | Database name | `socialmedia` |
+| `DB_USER` | Username | `postgres` |
+| `DB_PASSWORD` | Password | `postgres` |
+| `DB_SSL_MODE` | JDBC `sslmode` | `disable` (use `require` for hosted Postgres) |
+
+### Redis
+
+| Variable | Purpose | Local default |
+|----------|---------|---------------|
+| `REDIS_HOST` | Redis host | `localhost` / Compose: `redis` |
+| `REDIS_PORT` | Redis port | `6379` |
+| `REDIS_USERNAME` | ACL username (optional) | empty |
+| `REDIS_PASSWORD` | Password (optional) | empty |
+| `REDIS_SSL` | Enable TLS | `false` |
+
+### CORS / frontend origins
+
+| Variable | Purpose |
+|----------|---------|
+| `FRONTEND_ORIGINS` | Comma-separated exact origins allowed by CORS (credentials enabled) |
+
+Local Compose sets:
+
+```text
+FRONTEND_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
+
+### Refresh cookie
+
+| Variable | Purpose | Local default |
+|----------|---------|---------------|
+| `REFRESH_COOKIE_SECURE` | `Secure` flag | `false` |
+| `REFRESH_COOKIE_SAME_SITE` | `SameSite` | `Lax` |
+
+For cross-site HTTPS deployments, typically `REFRESH_COOKIE_SECURE=true` and `REFRESH_COOKIE_SAME_SITE=None`.
+
+### Frontend API origin
+
+| Variable | Purpose |
+|----------|---------|
+| `VITE_API_ORIGIN` | Optional API origin. Empty → same-origin `/api`. Set → `${VITE_API_ORIGIN}/api` |
+
+### Like synchronization
+
+| Variable | Purpose | Local default |
+|----------|---------|---------------|
+| `LIKE_SYNC_ENABLED` | Background Redis→Postgres like sync | `true` |
+| `LIKE_SYNC_INTERVAL_MS` | Scheduler interval | `5000` |
+| `LIKE_SYNC_BATCH_SIZE` | Posts per sync batch | `50` |
+
+Also set `PORT` (default `8080`) and `JWT_SECRET` for the backend.
 
 ## Capabilities
 

@@ -33,15 +33,20 @@ services:
       redis:
         condition: service_healthy
     environment:
+      PORT: 8080
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: authdb
+      DB_NAME: socialmedia
       DB_USER: postgres
       DB_PASSWORD: postgres
+      DB_SSL_MODE: disable
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_SSL: "false"
       JWT_SECRET: change-this-to-a-long-random-secret-key-32chars-min
       REFRESH_COOKIE_SECURE: "false"
+      REFRESH_COOKIE_SAME_SITE: Lax
+      FRONTEND_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
     ports:
       - "8080:8080"
 

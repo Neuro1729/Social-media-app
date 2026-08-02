@@ -3,6 +3,10 @@ dist/
 target/
 uploads/
 .env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
 *.log
 .DS_Store
 .idea/

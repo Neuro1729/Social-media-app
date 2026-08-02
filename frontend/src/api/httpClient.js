@@ -1,5 +1,8 @@
 import axios from 'axios'
 
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || ''
+const API_BASE_URL = `${API_ORIGIN}/api`
+
 let accessTokenGetter = () => null
 let accessTokenSetter = () => {}
 let onAuthFailure = () => {}
@@ -11,7 +14,7 @@ export function bindAuthHandlers({ getToken, setToken, onFailure }) {
 }
 
 const httpClient = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
@@ -40,7 +43,7 @@ httpClient.interceptors.response.use(
     try {
       if (!refreshPromise) {
         refreshPromise = axios
-          .post('/api/auth/refresh', {}, { withCredentials: true })
+          .post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true })
           .then((res) => {
             accessTokenSetter(res.data.accessToken)
             return res.data.accessToken

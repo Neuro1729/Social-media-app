@@ -1,12 +1,12 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: auth-module
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:authdb}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:socialmedia}?sslmode=${DB_SSL_MODE:disable}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
 
@@ -27,6 +27,10 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
 
   # Secure cookie requires HTTPS in production; allow over HTTP for local dev
   servlet:
@@ -41,13 +45,14 @@ app:
     days: 30
     cookie-name: refreshToken
     cookie-secure: ${REFRESH_COOKIE_SECURE:false}
-    cookie-same-site: Lax
+    cookie-same-site: ${REFRESH_COOKIE_SAME_SITE:Lax}
   password-reset:
     token-hours: 1
+  frontend-origins: ${FRONTEND_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
   likes:
-    sync-enabled: true
-    sync-interval-ms: 5000
-    sync-batch-size: 50
+    sync-enabled: ${LIKE_SYNC_ENABLED:true}
+    sync-interval-ms: ${LIKE_SYNC_INTERVAL_MS:5000}
+    sync-batch-size: ${LIKE_SYNC_BATCH_SIZE:50}
 
 logging:
   level:

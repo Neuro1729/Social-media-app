@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { profileLoadError } from '../api/profileErrors'
 import { socialApi } from './SocialApi'
 
 export default function ProfileSearchBar() {
@@ -18,7 +19,7 @@ export default function ProfileSearchBar() {
       const profile = await socialApi.search(value)
       navigate(`/profile/${encodeURIComponent(profile.username || value.toLowerCase())}`)
     } catch (err) {
-      setError(err.response?.data?.error || 'User not found')
+      setError(profileLoadError(err))
     } finally {
       setBusy(false)
     }

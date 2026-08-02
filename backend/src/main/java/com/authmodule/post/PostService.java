@@ -1,6 +1,7 @@
 package com.authmodule.post;
 
 import com.authmodule.auth.UsernameValidator;
+import com.authmodule.social.ProfileProvisioningRepository;
 import com.authmodule.social.SocialRepository;
 import jakarta.persistence.EntityManager;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ public class PostService {
     private final PostPermissionService permissionService;
     private final UsernameValidator usernameValidator;
     private final SocialRepository socialRepository;
+    private final ProfileProvisioningRepository profileProvisioning;
     private final EntityManager em;
 
     public PostService(
@@ -34,6 +36,7 @@ public class PostService {
             PostPermissionService permissionService,
             UsernameValidator usernameValidator,
             SocialRepository socialRepository,
+            ProfileProvisioningRepository profileProvisioning,
             EntityManager em
     ) {
         this.postRepository = postRepository;
@@ -43,6 +46,7 @@ public class PostService {
         this.permissionService = permissionService;
         this.usernameValidator = usernameValidator;
         this.socialRepository = socialRepository;
+        this.profileProvisioning = profileProvisioning;
         this.em = em;
     }
 
@@ -316,9 +320,7 @@ public class PostService {
     }
 
     private void ensureProfile(UUID userId) {
-        if (socialRepository.findProfileByUserId(userId).isEmpty()) {
-            socialRepository.createProfile(userId);
-        }
+        profileProvisioning.createIfMissing(userId);
     }
 
     private static String normalizeText(String raw, int max, String label) {

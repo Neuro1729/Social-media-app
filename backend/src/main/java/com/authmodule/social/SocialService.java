@@ -16,19 +16,23 @@ import java.util.UUID;
 public class SocialService {
 
     private final SocialRepository socialRepository;
+    private final ProfileProvisioningRepository profileProvisioning;
     private final PrivacyService privacyService;
     private final UsernameValidator usernameValidator;
 
     public SocialService(
             SocialRepository socialRepository,
+            ProfileProvisioningRepository profileProvisioning,
             PrivacyService privacyService,
             UsernameValidator usernameValidator
     ) {
         this.socialRepository = socialRepository;
+        this.profileProvisioning = profileProvisioning;
         this.privacyService = privacyService;
         this.usernameValidator = usernameValidator;
     }
 
+    @Transactional
     public SocialModels.ProfileResponse getProfileByUsername(String username, UUID viewerId) {
         String normalized = usernameValidator.normalizeUsername(username.trim());
         UUID ownerId = socialRepository.findUserIdByNormalizedUsername(normalized)
@@ -36,6 +40,7 @@ public class SocialService {
         return buildProfileResponse(ownerId, viewerId);
     }
 
+    @Transactional
     public SocialModels.ProfileResponse searchProfileByUsername(String username, UUID viewerId) {
         return getProfileByUsername(username, viewerId);
     }
@@ -306,8 +311,7 @@ public class SocialService {
     }
 
     private Profile getOrCreateProfile(UUID userId) {
-        return socialRepository.findProfileByUserId(userId)
-                .orElseGet(() -> socialRepository.createProfile(userId));
+        return profileProvisioning.createIfMissing(userId);
     }
 
     private UUID resolveOwner(String username) {

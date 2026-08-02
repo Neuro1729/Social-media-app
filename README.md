@@ -82,13 +82,46 @@ FRONTEND_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 | `REFRESH_COOKIE_SECURE` | `Secure` flag | `false` |
 | `REFRESH_COOKIE_SAME_SITE` | `SameSite` | `Lax` |
 
-For cross-site HTTPS deployments, typically `REFRESH_COOKIE_SECURE=true` and `REFRESH_COOKIE_SAME_SITE=None`.
+For HTTPS deployments that call the API through the Cloudflare Pages `/api` proxy (same-site),
+use `REFRESH_COOKIE_SECURE=true` and `REFRESH_COOKIE_SAME_SITE=Lax`. Prefer that over cross-site
+`SameSite=None` when the Pages Function proxy is enabled.
 
-### Frontend API origin
+### Frontend API origin (browser build)
 
 | Variable | Purpose |
 |----------|---------|
-| `VITE_API_ORIGIN` | Optional API origin. Empty → same-origin `/api`. Set → `${VITE_API_ORIGIN}/api` |
+| `VITE_API_ORIGIN` | Optional separate API origin for the Vite build. Empty → same-origin `/api`. Set → `${VITE_API_ORIGIN}/api` |
+
+For Cloudflare Pages with the Functions proxy, leave `VITE_API_ORIGIN` empty/absent so the browser only calls `/api` on the Pages domain.
+
+### Cloudflare Pages Function (server-side)
+
+| Variable | Purpose |
+|----------|---------|
+| `BACKEND_ORIGIN` | Absolute HTTPS origin of the backend (no trailing slash). Read by `frontend/functions/api/[[path]].js` via `context.env.BACKEND_ORIGIN`. |
+
+Configure in **Cloudflare Pages → project → Settings → Variables and Secrets** for **Production** and **Preview**.
+
+Example (do not commit real URLs):
+
+```text
+BACKEND_ORIGIN=https://your-backend.example.com
+```
+
+Local Pages Function smoke test (optional; Docker/nginx remains the default local workflow):
+
+```bash
+cd frontend
+npm run build
+npx wrangler pages dev dist --binding BACKEND_ORIGIN=http://localhost:8080 --binding ALLOW_INSECURE_BACKEND_ORIGIN=true
+```
+
+Proxy unit tests (no live backend required):
+
+```bash
+cd frontend
+npm run test:functions
+```
 
 ### Like synchronization
 
@@ -99,6 +132,13 @@ For cross-site HTTPS deployments, typically `REFRESH_COOKIE_SECURE=true` and `RE
 | `LIKE_SYNC_BATCH_SIZE` | Posts per sync batch | `50` |
 
 Also set `PORT` (default `8080`) and `JWT_SECRET` for the backend.
+
+Backend integration tests expect Postgres + Redis (same defaults as Compose). With Compose running:
+
+```bash
+cd backend
+mvn test
+```
 
 ## Capabilities
 
@@ -149,12 +189,13 @@ React + Vite SPA with protected routes for:
 | Auth | JWT (access) + Redis sessions (refresh) |
 | Data | PostgreSQL 16, Redis 7 |
 | Frontend | React 19, Vite 6, React Router, Axios |
-| Deploy | Docker Compose (Postgres, Redis, API, nginx frontend) |
+| Deploy | Docker Compose locally; Cloudflare Pages (SPA + `/api` Function proxy) + hosted Postgres/Redis/API |
 
 ## Project layout
 
 ```
-backend/     Spring Boot API (auth, social, posts)
-frontend/    React SPA
+backend/                 Spring Boot API (auth, social, posts)
+frontend/                React SPA
+frontend/functions/api/  Cloudflare Pages /api proxy
 docker-compose.yml
 ```

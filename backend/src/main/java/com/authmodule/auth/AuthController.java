@@ -3,7 +3,6 @@ package com.authmodule.auth;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -117,12 +116,6 @@ public class AuthController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<AuthModels.ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(new AuthModels.ErrorResponse(ex.getMessage()));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<AuthModels.ErrorResponse> handleServerError(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new AuthModels.ErrorResponse("Unexpected error"));
     }
 
     private AuthPrincipal principal(Authentication authentication) {

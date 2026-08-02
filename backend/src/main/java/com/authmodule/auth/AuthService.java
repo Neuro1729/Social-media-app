@@ -1,5 +1,6 @@
 package com.authmodule.auth;
 
+import com.authmodule.social.ProfileProvisioningRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final UsernameValidator validator;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileProvisioningRepository profileProvisioning;
     private final SecureRandom secureRandom = new SecureRandom();
 
     private final String cookieName;
@@ -43,6 +45,7 @@ public class AuthService {
             JwtService jwtService,
             UsernameValidator validator,
             PasswordEncoder passwordEncoder,
+            ProfileProvisioningRepository profileProvisioning,
             @Value("${app.refresh-token.cookie-name}") String cookieName,
             @Value("${app.refresh-token.cookie-secure}") boolean cookieSecure,
             @Value("${app.refresh-token.cookie-same-site}") String cookieSameSite,
@@ -54,6 +57,7 @@ public class AuthService {
         this.jwtService = jwtService;
         this.validator = validator;
         this.passwordEncoder = passwordEncoder;
+        this.profileProvisioning = profileProvisioning;
         this.cookieName = cookieName;
         this.cookieSecure = cookieSecure;
         this.cookieSameSite = cookieSameSite;
@@ -134,6 +138,8 @@ public class AuthService {
                     true
             ));
         }
+
+        profileProvisioning.createIfMissing(user.getId());
 
         return issueTokens(user, "Registration", response);
     }

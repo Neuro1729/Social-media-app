@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { profileLoadError } from '../api/profileErrors'
 import CreatePostForm from '../posts/CreatePostForm'
 import ProfilePostList from '../posts/ProfilePostList'
 import ProfileSearchBar from './ProfileSearchBar'
@@ -19,7 +20,7 @@ export default function ProfilePage() {
       setProfile(data)
     } catch (err) {
       setProfile(null)
-      setError(err.response?.data?.error || 'User not found')
+      setError(profileLoadError(err))
     }
   }, [username])
 

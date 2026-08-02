@@ -12,7 +12,7 @@ Full-stack social app for accounts, profiles, follows, and posts.
 2. Start everything (Postgres, Redis, backend, frontend):
 
 ```bash
-docker compose up --build -d
+docker compose up --build -d 
 ```
 
 3. Wait until containers are healthy, then open the site:

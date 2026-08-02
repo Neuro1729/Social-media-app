@@ -16,7 +16,7 @@ services:
       retries: 10
 
   backend:
-    build: ./backend
+    image: project-backend:latest
     depends_on:
       db:
         condition: service_healthy
@@ -32,7 +32,7 @@ services:
       - "8080:8080"
 
   frontend:
-    build: ./frontend
+    image: project-frontend:latest
     depends_on:
       - backend
     ports:

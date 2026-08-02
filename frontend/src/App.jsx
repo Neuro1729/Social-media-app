@@ -13,6 +13,10 @@ import FollowingPage from './social/FollowingPage'
 import FollowRequestsPage from './social/FollowRequestsPage'
 import BlockedUsersPage from './social/BlockedUsersPage'
 
+function homePath(user) {
+  return user?.username ? `/profile/${user.username}` : '/account'
+}
+
 function Protected({ children }) {
   const { accessToken, bootstrapping } = useAuth()
   if (bootstrapping) return <div className="page center">Loading…</div>
@@ -20,14 +24,29 @@ function Protected({ children }) {
   return children
 }
 
+/** Login/register pages: if session is still valid, skip straight to home. */
+function GuestOnly({ children }) {
+  const { accessToken, user, bootstrapping } = useAuth()
+  if (bootstrapping) return <div className="page center">Loading…</div>
+  if (accessToken) return <Navigate to={homePath(user)} replace />
+  return children
+}
+
+function HomeRedirect() {
+  const { accessToken, user, bootstrapping } = useAuth()
+  if (bootstrapping) return <div className="page center">Loading…</div>
+  if (!accessToken) return <Navigate to="/login" replace />
+  return <Navigate to={homePath(user)} replace />
+}
+
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/account" replace />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route path="/register" element={<GuestOnly><RegisterPage /></GuestOnly>} />
+      <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
+      <Route path="/forgot-password" element={<GuestOnly><ForgotPasswordPage /></GuestOnly>} />
+      <Route path="/reset-password" element={<GuestOnly><ResetPasswordPage /></GuestOnly>} />
       <Route path="/account" element={<Protected><AccountPage /></Protected>} />
       <Route path="/account/devices" element={<Protected><DevicesPage /></Protected>} />
       <Route path="/profile/edit" element={<Protected><EditProfilePage /></Protected>} />
@@ -36,7 +55,7 @@ export default function App() {
       <Route path="/profile/:username/followers" element={<Protected><FollowersPage /></Protected>} />
       <Route path="/profile/:username/following" element={<Protected><FollowingPage /></Protected>} />
       <Route path="/profile/:username" element={<Protected><ProfilePage /></Protected>} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<HomeRedirect />} />
     </Routes>
   )
 }

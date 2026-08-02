@@ -44,6 +44,10 @@ app:
     cookie-same-site: Lax
   password-reset:
     token-hours: 1
+  likes:
+    sync-enabled: true
+    sync-interval-ms: 5000
+    sync-batch-size: 50
 
 logging:
   level:

@@ -59,6 +59,10 @@ public class SecurityConfig {
                                 AntPathRequestMatcher.antMatcher("/api/social/search/**"),
                                 AntPathRequestMatcher.antMatcher("/api/social/profiles/**")
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/posts/**",
+                                "/api/profiles/*/posts"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )

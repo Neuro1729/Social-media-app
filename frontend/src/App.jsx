@@ -12,6 +12,7 @@ import FollowersPage from './social/FollowersPage'
 import FollowingPage from './social/FollowingPage'
 import FollowRequestsPage from './social/FollowRequestsPage'
 import BlockedUsersPage from './social/BlockedUsersPage'
+import PostPage from './posts/PostPage'
 
 function homePath(user) {
   return user?.username ? `/profile/${user.username}` : '/account'
@@ -55,6 +56,7 @@ export default function App() {
       <Route path="/profile/:username/followers" element={<Protected><FollowersPage /></Protected>} />
       <Route path="/profile/:username/following" element={<Protected><FollowingPage /></Protected>} />
       <Route path="/profile/:username" element={<Protected><ProfilePage /></Protected>} />
+      <Route path="/posts/:id" element={<Protected><PostPage /></Protected>} />
       <Route path="*" element={<HomeRedirect />} />
     </Routes>
   )

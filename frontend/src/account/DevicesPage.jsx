@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { accountApi } from './accountApi'
 
+function deviceTitle(name) {
+  if (!name) return 'Unknown device'
+  if (name.length > 48) return `${name.slice(0, 48)}…`
+  return name
+}
+
 export default function DevicesPage() {
   const { logout } = useAuth()
   const [sessions, setSessions] = useState([])
@@ -50,32 +56,32 @@ export default function DevicesPage() {
   return (
     <div className="page">
       <div className="shell wide">
-        <header className="topbar">
-          <p className="brand">Auth Module</p>
-          <nav className="links">
-            <Link to="/account">Account</Link>
-          </nav>
-        </header>
+        <p className="brand">Canopy</p>
+        <hr className="divider" />
+        <nav className="side-nav">
+          <Link to="/account">Account</Link>
+        </nav>
+        <hr className="divider" />
         <h1>Devices</h1>
-        <p className="lead">Active refresh sessions across your devices.</p>
+        <p className="lead">Sessions signed in across your devices.</p>
         {error && <p className="error">{error}</p>}
-        <ul className="device-list">
+        <ul className="card-list">
           {sessions.map((session) => (
-            <li key={session.sessionId}>
+            <li key={session.sessionId} className="card">
               <div>
-                <strong>{session.deviceName}</strong>
-                {session.current && <span className="badge">Current</span>}
-                <p>Created {new Date(session.createdAt).toLocaleString()}</p>
+                <strong>{deviceTitle(session.deviceName)}</strong>
+                {session.current && <span className="badge">Current Device</span>}
+                <p>Started {new Date(session.createdAt).toLocaleString()}</p>
                 <p>Expires {new Date(session.expiresAt).toLocaleString()}</p>
               </div>
               <button type="button" className="secondary" disabled={busy} onClick={() => revoke(session.sessionId)}>
-                Logout device
+                Logout
               </button>
             </li>
           ))}
         </ul>
-        <button type="button" disabled={busy || sessions.length === 0} onClick={revokeAll}>
-          Logout all devices
+        <button type="button" className="danger" disabled={busy || sessions.length === 0} onClick={revokeAll}>
+          Logout All Devices
         </button>
       </div>
     </div>

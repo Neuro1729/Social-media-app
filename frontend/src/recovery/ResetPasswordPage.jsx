@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="page">
       <div className="shell">
-        <p className="brand">Auth Module</p>
+        <p className="brand">Canopy</p>
         <h1>Reset password</h1>
         <p className="lead">Paste your reset token and choose a new password.</p>
         <form onSubmit={onSubmit} className="stack">

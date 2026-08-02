@@ -35,7 +35,7 @@ export default function RegisterPage() {
   return (
     <div className="page">
       <div className="shell">
-        <p className="brand">Auth Module</p>
+        <p className="brand">Canopy</p>
         <h1>Create account</h1>
         <p className="lead">Email or phone required. Username optional.</p>
         <form onSubmit={onSubmit} className="stack">
@@ -56,10 +56,10 @@ export default function RegisterPage() {
             <input type="password" value={form.password} onChange={(e) => update('password', e.target.value)} required minLength={8} autoComplete="new-password" />
           </label>
           {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create account'}</button>
+          <button type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create Account'}</button>
         </form>
-        <div className="links">
-          <Link to="/login">Already have an account?</Link>
+        <div className="auth-links">
+          <Link to="/login">Already have an account? Sign in</Link>
         </div>
       </div>
     </div>

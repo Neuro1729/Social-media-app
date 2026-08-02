@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { accountApi } from './accountApi'
+import ProfileSearchBar from '../social/ProfileSearchBar'
 
 export default function AccountPage() {
   const { user, logout, refreshUser } = useAuth()
@@ -45,13 +46,19 @@ export default function AccountPage() {
   return (
     <div className="page">
       <div className="shell wide">
-        <header className="topbar">
-          <p className="brand">Auth Module</p>
-          <nav className="links">
-            <Link to="/account/devices">Devices</Link>
-            <button type="button" className="linkish" onClick={logout}>Logout</button>
-          </nav>
-        </header>
+        <p className="brand">Canopy</p>
+        <hr className="divider" />
+        <ProfileSearchBar />
+        <hr className="divider" />
+        <nav className="side-nav">
+          {user?.username && <Link to={`/profile/${user.username}`}>My Profile</Link>}
+          <Link to="/profile/edit">Edit Profile</Link>
+          <Link to="/follow-requests">Requests</Link>
+          <Link to="/blocked-users">Blocked</Link>
+          <Link to="/account/devices">Devices</Link>
+          <button type="button" className="linkish logout" onClick={logout}>Logout</button>
+        </nav>
+        <hr className="divider" />
         <h1>Account</h1>
         <p className="lead">Signed in as {user?.email || user?.phone || user?.username}</p>
         <dl className="meta">

@@ -27,12 +27,12 @@ export default function LoginPage() {
   return (
     <div className="page">
       <div className="shell">
-        <p className="brand">Auth Module</p>
-        <h1>Sign in</h1>
-        <p className="lead">Use username, email, or phone.</p>
+        <p className="brand">Canopy</p>
+        <h1>Welcome back.</h1>
+        <p className="lead">Sign in with username, email, or phone.</p>
         <form onSubmit={onSubmit} className="stack">
           <label>
-            Login
+            Username / Email / Phone
             <input value={loginValue} onChange={(e) => setLoginValue(e.target.value)} required autoComplete="username" />
           </label>
           <label>
@@ -40,11 +40,11 @@ export default function LoginPage() {
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
           </label>
           {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+          <button type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign In'}</button>
         </form>
-        <div className="links">
-          <Link to="/register">Create account</Link>
-          <Link to="/forgot-password">Forgot password</Link>
+        <div className="auth-links">
+          <Link to="/forgot-password">Forgot Password</Link>
+          <Link to="/register">Create Account</Link>
         </div>
       </div>
     </div>

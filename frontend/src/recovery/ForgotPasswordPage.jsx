@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="page">
       <div className="shell">
-        <p className="brand">Auth Module</p>
+        <p className="brand">Canopy</p>
         <h1>Forgot password</h1>
         <p className="lead">Enter your username, email, or phone.</p>
         <form onSubmit={onSubmit} className="stack">

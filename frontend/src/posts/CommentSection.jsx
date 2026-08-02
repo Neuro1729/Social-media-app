@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import CommentForm from './CommentForm'
 import { postApi } from './postApi'
 
-export default function CommentSection({ postId }) {
+export default function CommentSection({ postId, liveEvent, viewerId, postAuthorId }) {
   const [items, setItems] = useState([])
   const [cursor, setCursor] = useState(null)
   const [hasMore, setHasMore] = useState(true)
@@ -11,6 +11,37 @@ export default function CommentSection({ postId }) {
   const [error, setError] = useState('')
   const seen = useRef(new Set())
   const loadingRef = useRef(false)
+
+  const withDeleteFlag = useCallback((comment) => ({
+    ...comment,
+    canDelete: Boolean(
+      comment?.canDelete
+      || (viewerId && comment?.authorId === viewerId)
+      || (viewerId && postAuthorId && postAuthorId === viewerId),
+    ),
+  }), [postAuthorId, viewerId])
+
+  const upsertComment = useCallback((comment) => {
+    if (!comment?.id || seen.current.has(comment.id)) return
+    seen.current.add(comment.id)
+    const next = withDeleteFlag(comment)
+    setItems((prev) => [next, ...prev])
+  }, [withDeleteFlag])
+
+  const removeComment = useCallback((commentId) => {
+    if (!commentId) return
+    seen.current.delete(commentId)
+    setItems((prev) => prev.filter((c) => c.id !== commentId))
+  }, [])
+
+  useEffect(() => {
+    if (!liveEvent) return
+    if (liveEvent.type === 'comment_created') {
+      upsertComment(liveEvent.comment)
+    } else if (liveEvent.type === 'comment_deleted') {
+      removeComment(liveEvent.commentId)
+    }
+  }, [liveEvent, removeComment, upsertComment])
 
   const loadMore = useCallback(async () => {
     if (loadingRef.current || !hasMore) return
@@ -55,17 +86,14 @@ export default function CommentSection({ postId }) {
   async function onDelete(commentId) {
     try {
       await postApi.deleteComment(commentId)
-      setItems((prev) => prev.filter((c) => c.id !== commentId))
-      seen.current.delete(commentId)
+      removeComment(commentId)
     } catch (err) {
       setError(err.response?.data?.error || 'Could not delete comment')
     }
   }
 
   function onCreated(comment) {
-    if (seen.current.has(comment.id)) return
-    seen.current.add(comment.id)
-    setItems((prev) => [comment, ...prev])
+    upsertComment(comment)
   }
 
   return (

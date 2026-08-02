@@ -7,11 +7,16 @@ import jakarta.persistence.EntityManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +31,7 @@ public class PostService {
     private final UsernameValidator usernameValidator;
     private final SocialRepository socialRepository;
     private final ProfileProvisioningRepository profileProvisioning;
+    private final PostEventHub postEventHub;
     private final EntityManager em;
 
     public PostService(
@@ -37,6 +43,7 @@ public class PostService {
             UsernameValidator usernameValidator,
             SocialRepository socialRepository,
             ProfileProvisioningRepository profileProvisioning,
+            PostEventHub postEventHub,
             EntityManager em
     ) {
         this.postRepository = postRepository;
@@ -47,6 +54,7 @@ public class PostService {
         this.usernameValidator = usernameValidator;
         this.socialRepository = socialRepository;
         this.profileProvisioning = profileProvisioning;
+        this.postEventHub = postEventHub;
         this.em = em;
     }
 
@@ -121,7 +129,9 @@ public class PostService {
         if (added) {
             recordEvent(actorId, "POST_LIKED", "POST", postId, post.getAuthorId(), null);
         }
-        return likeState(postId, actorId);
+        PostModels.LikeResponse state = likeState(postId, actorId);
+        publishAfterCommit(postId, "like", likeEvent(state, actorId));
+        return state;
     }
 
     @Transactional
@@ -136,7 +146,9 @@ public class PostService {
         if (removed) {
             recordEvent(actorId, "POST_UNLIKED", "POST", postId, post.getAuthorId(), null);
         }
-        return likeState(postId, actorId);
+        PostModels.LikeResponse state = likeState(postId, actorId);
+        publishAfterCommit(postId, "like", likeEvent(state, actorId));
+        return state;
     }
 
     @Transactional(readOnly = true)
@@ -176,7 +188,7 @@ public class PostService {
         em.flush();
         recordEvent(actorId, "COMMENT_CREATED", "COMMENT", comment.getId(), post.getAuthorId(),
                 "{\"postId\":\"" + postId + "\"}");
-        return commentRepository.findActiveCommentRow(comment.getId())
+        PostModels.CommentResponse response = commentRepository.findActiveCommentRow(comment.getId())
                 .map(row -> toCommentResponse(row, actorId, post.getAuthorId()))
                 .orElseGet(() -> new PostModels.CommentResponse(
                         comment.getId(),
@@ -188,6 +200,22 @@ public class PostService {
                         now,
                         true
                 ));
+        PostModels.CommentResponse broadcast = commentRepository.findActiveCommentRow(comment.getId())
+                .map(row -> toCommentResponse(row, null, post.getAuthorId()))
+                .orElseGet(() -> new PostModels.CommentResponse(
+                        comment.getId(),
+                        postId,
+                        actorId,
+                        null,
+                        null,
+                        body,
+                        now,
+                        false
+                ));
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("comment", broadcast);
+        publishAfterCommit(postId, "comment_created", payload);
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -233,7 +261,39 @@ public class PostService {
         commentRepository.merge(comment);
         recordEvent(actorId, "COMMENT_DELETED", "COMMENT", commentId, post.getAuthorId(),
                 "{\"postId\":\"" + post.getId() + "\"}");
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("commentId", commentId);
+        publishAfterCommit(post.getId(), "comment_deleted", payload);
         return new PostModels.MessageResponse("Comment deleted");
+    }
+
+    public SseEmitter subscribeToEvents(UUID postId, UUID viewerId) {
+        Post post = permissionService.requireActivePost(postId);
+        permissionService.requireCanViewPost(viewerId, post);
+        return postEventHub.subscribe(postId);
+    }
+
+    private Map<String, Object> likeEvent(PostModels.LikeResponse state, UUID actorId) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("postId", state.postId());
+        payload.put("likeCount", state.likeCount());
+        payload.put("actorId", actorId);
+        payload.put("liked", state.likedByViewer());
+        return payload;
+    }
+
+    private void publishAfterCommit(UUID postId, String eventName, Object payload) {
+        Runnable publish = () -> postEventHub.publish(postId, eventName, payload);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publish.run();
+                }
+            });
+        } else {
+            publish.run();
+        }
     }
 
     private PostModels.LikeResponse likeState(UUID postId, UUID actorId) {

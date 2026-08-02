@@ -24,6 +24,8 @@ const FORWARD_REQUEST_HEADERS = new Set([
   'accept-language',
   'if-none-match',
   'if-modified-since',
+  'cache-control',
+  'last-event-id',
 ])
 
 /**

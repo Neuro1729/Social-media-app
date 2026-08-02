@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { postApi } from './postApi'
 
 export default function LikeButton({ postId, initialLiked, initialCount, onChange }) {
   const [liked, setLiked] = useState(Boolean(initialLiked))
   const [count, setCount] = useState(initialCount ?? 0)
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    setLiked(Boolean(initialLiked))
+  }, [initialLiked])
+
+  useEffect(() => {
+    setCount(initialCount ?? 0)
+  }, [initialCount])
 
   async function toggle() {
     if (busy) return
